@@ -79,7 +79,7 @@ function loadSaved() {
 function renderScoreboard() {
   var box = $('scoreboard'); box.innerHTML = '';
   if (!players.length) { box.appendChild(el('span', 'hint', 'Save player names to start the scoreboard.')); return; }
-  players.forEach(function(p) {
+  players.slice().sort(function(a, b) { return (wins[b.name] || 0) - (wins[a.name] || 0); }).forEach(function(p) {
     var c = el('span', 'score-chip');
     c.innerHTML = '<span style="color:' + p.color + '">●</span> ' + p.name + ' — <b>' + (wins[p.name] || 0) + '</b>';
     box.appendChild(c);

@@ -4,13 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Party Pack — 5 Games, One Phone</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Orbitron:wght@700;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 <link rel="stylesheet" href="sprites.css">
 </head>
 <body>
+<div class="bg-fx" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
 <header class="topbar">
-  <h1>🎉 Party Pack</h1>
+  <h1><span class="wm1">PARTY</span> <span class="wm2">PACK</span></h1>
   <p>5 games. One phone. Pass it around.</p>
+  <a class="btn gold start-btn" href="#gamesGrid">▶ Start Playing</a>
 </header>
 
 <!-- HOME -->
@@ -19,10 +24,10 @@
     <h2>Players</h2>
     <p class="hint">Enter 2–4 names. Games use as many as they need (Tic-Tac-Toe, Connect Four and Battleship use the first 2).</p>
     <div class="player-inputs">
-      <input id="pname0" placeholder="Player 1 name" maxlength="14">
-      <input id="pname1" placeholder="Player 2 name" maxlength="14">
-      <input id="pname2" placeholder="Player 3 name (optional)" maxlength="14">
-      <input id="pname3" placeholder="Player 4 name (optional)" maxlength="14">
+      <label class="player-slot slot-p0"><span class="slot-avatar" aria-hidden="true">1</span><input id="pname0" placeholder="Player 1 name" maxlength="14" aria-label="Player 1 name"></label>
+      <label class="player-slot slot-p1"><span class="slot-avatar" aria-hidden="true">2</span><input id="pname1" placeholder="Player 2 name" maxlength="14" aria-label="Player 2 name"></label>
+      <label class="player-slot slot-p2"><span class="slot-avatar" aria-hidden="true">3</span><input id="pname2" placeholder="Player 3 name (optional)" maxlength="14" aria-label="Player 3 name"></label>
+      <label class="player-slot slot-p3"><span class="slot-avatar" aria-hidden="true">4</span><input id="pname3" placeholder="Player 4 name (optional)" maxlength="14" aria-label="Player 4 name"></label>
     </div>
     <div class="row">
       <button class="btn gold" id="btnSavePlayers">Save players</button>
@@ -33,12 +38,12 @@
     <div id="scoreboard" class="scoreboard"></div>
   </div>
 
-  <div class="games-grid">
-    <button class="game-card" data-game="ludo"><span class="big">🎲</span><strong>Ludo</strong><span>2–4 players · full rules</span></button>
-    <button class="game-card" data-game="ttt"><span class="big">❌</span><strong>Tic-Tac-Toe</strong><span>2 players · best of rounds</span></button>
-    <button class="game-card" data-game="c4"><span class="big">🔴</span><strong>Connect Four</strong><span>2 players · drop &amp; connect</span></button>
-    <button class="game-card" data-game="dots"><span class="big">⬜</span><strong>Dots &amp; Boxes</strong><span>2–4 players · claim boxes</span></button>
-    <button class="game-card" data-game="ships"><span class="big">🚢</span><strong>Battleship</strong><span>2 players · hotseat, don't peek!</span></button>
+  <div class="games-grid" id="gamesGrid">
+    <button class="game-card" data-game="ludo"><span class="big">🎲</span><span class="game-title">Ludo</span><span class="game-desc">Full rules · Royale board</span><span class="pill">2–4 players</span></button>
+    <button class="game-card" data-game="ttt"><span class="big">❌</span><span class="game-title">Tic-Tac-Toe</span><span class="game-desc">Best of rounds</span><span class="pill">2 players</span></button>
+    <button class="game-card" data-game="c4"><span class="big">🔴</span><span class="game-title">Connect Four</span><span class="game-desc">Drop &amp; connect</span><span class="pill">2 players</span></button>
+    <button class="game-card" data-game="dots"><span class="big">⬜</span><span class="game-title">Dots &amp; Boxes</span><span class="game-desc">Claim boxes, go again</span><span class="pill">2–4 players</span></button>
+    <button class="game-card" data-game="ships"><span class="big">🚢</span><span class="game-title">Battleship</span><span class="game-desc">Hotseat — don't peek!</span><span class="pill">2 players</span></button>
   </div>
   <p class="hint center">Works offline once loaded — no accounts, no internet needed while playing.</p>
 </section>
@@ -46,12 +51,12 @@
 <!-- SHARED GAME SHELL -->
 <section id="view-game" class="view hidden">
   <div class="game-top">
-    <button class="btn ghost" id="btnBack">← Home</button>
+    <button class="btn ghost icon-btn" id="btnBack" aria-label="Back to home" title="Back to home">←</button>
     <h2 id="gameTitle"></h2>
-    <button class="btn ghost" id="btnHowTo">ⓘ How to play</button>
-    <button class="btn ghost" id="btnSound" aria-label="Toggle sound">🔊</button>
-    <button class="btn ghost" id="btnFullscreen">⛶ Fullscreen</button>
-    <button class="btn ghost" id="btnRestart">↻ Restart</button>
+    <button class="btn ghost icon-btn" id="btnHowTo" aria-label="How to play" title="How to play">ⓘ</button>
+    <button class="btn ghost icon-btn" id="btnSound" aria-label="Toggle sound" title="Sound on/off">🔊</button>
+    <button class="btn ghost icon-btn" id="btnFullscreen" aria-label="Toggle fullscreen" title="Fullscreen">⛶</button>
+    <button class="btn ghost icon-btn" id="btnRestart" aria-label="Restart game" title="Restart">↻</button>
   </div>
   <div id="turnBanner" class="turn-banner"></div>
   <div id="gameMsg" class="game-msg"></div>
@@ -106,6 +111,7 @@
   </div>
 
   <div id="gameOver" class="game-over hidden">
+    <div class="confetti" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
     <h3 id="gameOverText"></h3>
     <button class="btn gold" id="btnPlayAgain">Play again</button>
     <button class="btn ghost" id="btnHome2">Back to games</button>
