@@ -103,12 +103,6 @@ button, .game-card, .ttt-cell, .c4-cell, .edge, .ship-cell, .dice, .ludo-token {
   border: 2px solid rgba(245, 197, 24, 0.7); border-radius: 20px; padding: 22px; margin-top: 14px;
   animation: popIn 0.4s ease both;
 }
-/* Ludo controls stay visible while the board scrolls */
-.ludo-controls {
-  position: sticky; top: 0; z-index: 5; justify-content: center;
-  background: rgba(15, 12, 41, 0.92); border-radius: 16px; padding: 10px;
-  margin: -4px -4px 10px;
-}
 /* Tic-Tac-Toe */
 .ttt-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 320px; margin: 0 auto; }
 .ttt-cell {
@@ -172,3 +166,58 @@ button, .game-card, .ttt-cell, .c4-cell, .edge, .ship-cell, .dice, .ludo-token {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }
+
+/* ---- Ludo Royale theme (modelled on the reference image) ---- */
+#game-ludo { --ludo-accent: #d4af37; }
+#game-ludo.theme-ocean { --ludo-accent: #22d3ee; }
+#game-ludo.theme-rose { --ludo-accent: #fb7185; }
+.ludo-royale {
+  background-color: #0b1035;
+  background-image:
+    radial-gradient(circle at 12% 18%, #ffffff 1px, transparent 1.5px),
+    radial-gradient(circle at 82% 8%, #ffffff 1px, transparent 1.5px),
+    radial-gradient(circle at 68% 42%, #fde68a 1px, transparent 1.5px),
+    radial-gradient(circle at 30% 70%, #ffffff 1px, transparent 1.5px),
+    radial-gradient(circle at 90% 82%, #ffffff 1px, transparent 1.5px),
+    linear-gradient(160deg, #1b1440 0%, #0b1035 60%, #160b2e 100%);
+}
+.royale-top { display: flex; align-items: center; gap: 8px; justify-content: space-between; flex-wrap: wrap; }
+.royale-brand { font-size: 22px; font-weight: 900; letter-spacing: 0.5px; color: var(--ludo-accent); text-shadow: 0 2px 0 rgba(0, 0, 0, 0.6); }
+.royale-room { background: rgba(0, 0, 0, 0.4); border: 1px solid var(--glass-border); border-radius: 999px; padding: 6px 12px; font-size: 12px; font-weight: 700; color: rgba(255, 255, 255, 0.8); }
+.royale-mute { padding: 10px 14px; }
+.royale-players { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin: 12px 0 4px; }
+.royale-player { position: relative; flex: 1 1 100px; max-width: 130px; background: rgba(0, 0, 0, 0.45); border: 2px solid; border-radius: 16px; padding: 8px 6px; text-align: center; transition: transform 0.15s ease; }
+.royale-player.active { box-shadow: 0 0 18px var(--pc); transform: scale(1.04); }
+.royale-avatar { width: 40px; height: 40px; margin: 0 auto 4px; border-radius: 50%; background: var(--pc); border: 2px solid #ffd700; display: flex; align-items: center; justify-content: center; font-size: 19px; font-weight: 800; color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6); }
+.royale-name { font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.royale-status { font-size: 11px; color: rgba(255, 255, 255, 0.68); }
+.royale-bubble { position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%) scale(0.9); background: #fff; color: #111; padding: 6px 10px; border-radius: 14px; font-size: 15px; font-weight: 700; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.15s ease, transform 0.15s ease; z-index: 6; }
+.royale-bubble::after { content: ''; position: absolute; top: 100%; left: 50%; margin-left: -6px; border: 6px solid transparent; border-top-color: #fff; border-bottom: 0; }
+.royale-bubble.show { opacity: 1; transform: translateX(-50%) scale(1); }
+.royale-board { border: 3px solid var(--ludo-accent); background: #0a0f2e; box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.35), 0 18px 40px rgba(0, 0, 0, 0.5); }
+.ludo-board .ludo-cell.yard-p0 { background: radial-gradient(circle at 50% 40%, #f87171, #7f1d1d) !important; }
+.ludo-board .ludo-cell.yard-p1 { background: radial-gradient(circle at 50% 40%, #4ade80, #14532d) !important; }
+.ludo-board .ludo-cell.yard-p2 { background: radial-gradient(circle at 50% 40%, #facc15, #854d0e) !important; }
+.ludo-board .ludo-cell.yard-p3 { background: radial-gradient(circle at 50% 40%, #60a5fa, #1e3a8a) !important; }
+.ludo-board .ludo-cell.yard-home { box-shadow: inset 0 0 0 2px rgba(255, 215, 0, 0.85); border-radius: 6px; }
+.ludo-board .ludo-cell.safe::after { content: '★'; position: absolute; font-size: 12px; color: #b8860b; text-shadow: 0 0 4px rgba(255, 215, 0, 0.8); }
+.ludo-board .ludo-cell.start-p0::after { content: '➡'; position: absolute; font-size: 11px; color: rgba(0, 0, 0, 0.55); }
+.ludo-board .ludo-cell.start-p1::after { content: '⬇'; position: absolute; font-size: 11px; color: rgba(0, 0, 0, 0.55); }
+.ludo-board .ludo-cell.start-p2::after { content: '⬅'; position: absolute; font-size: 11px; color: rgba(0, 0, 0, 0.55); }
+.ludo-board .ludo-cell.start-p3::after { content: '⬆'; position: absolute; font-size: 11px; color: rgba(0, 0, 0, 0.55); }
+.ludo-board .ludo-cell.crown::after { content: '👑'; position: absolute; font-size: 13px; opacity: 0.85; }
+.ludo-board .ludo-token { width: 84%; height: 84%; font-size: 10px; position: relative; overflow: hidden; }
+.ludo-board .ludo-token::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 45%; background: linear-gradient(180deg, rgba(255, 255, 255, 0.55), transparent); }
+.royale-dice-zone { display: flex; gap: 16px; align-items: center; justify-content: center; flex-wrap: wrap; margin: 16px 0 6px; }
+.dice-plate { width: 118px; height: 118px; border-radius: 50%; background: radial-gradient(circle at 50% 35%, #fde68a, #d4af37 55%, #92600a); border: 3px solid rgba(255, 255, 255, 0.25); display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 26px rgba(0, 0, 0, 0.5), inset 0 0 0 4px rgba(255, 255, 255, 0.2); }
+.dice-plate .dice { width: 88px; height: 88px; font-size: 54px; }
+.royale-dice-text { text-align: center; }
+.tap-roll { font-size: 24px; font-weight: 900; letter-spacing: 1px; color: #f5c518; text-shadow: 0 2px 0 #7a4d00, 0 0 18px rgba(245, 197, 24, 0.45); transform: rotate(-3deg); margin-bottom: 8px; }
+.royale-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 12px; }
+.royale-actions .btn { padding: 11px 14px; font-size: 14px; }
+.royale-actions .btn.on { background: linear-gradient(135deg, #fde68a, var(--gold) 45%, var(--gold2)); color: #231303; }
+.royale-picker { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 10px; padding: 10px; background: rgba(0, 0, 0, 0.35); border-radius: 14px; }
+.picker-btn { font-size: 24px; background: rgba(255, 255, 255, 0.12); border: 1px solid var(--glass-border); border-radius: 12px; padding: 8px 10px; cursor: pointer; transition: transform 0.12s ease; }
+.picker-btn:active { transform: scale(0.9); }
+.picker-chip { font-size: 14px; font-weight: 600; color: #fff; background: rgba(255, 255, 255, 0.12); border: 1px solid var(--glass-border); border-radius: 999px; padding: 9px 13px; cursor: pointer; transition: transform 0.12s ease; }
+.picker-chip:active { transform: scale(0.94); }

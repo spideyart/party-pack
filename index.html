@@ -77,15 +77,33 @@
     <p id="shipsHint" class="hint center"></p>
   </div>
 
-  <!-- Ludo -->
-  <div id="game-ludo" class="game-panel hidden">
-    <div class="row wrap center ludo-controls">
-      <button type="button" id="ludoDice" class="dice" aria-label="Roll the dice" title="Tap to roll">🎲</button>
-      <button class="btn gold" id="ludoRoll">Roll dice</button>
-      <span id="ludoRollInfo" class="hint"></span>
-      <span class="hint">Tap the dice or Roll to play</span>
+  <!-- Ludo — Royale look, modelled on the Ludo Royale reference image -->
+  <div id="game-ludo" class="game-panel ludo-royale hidden">
+    <div class="royale-top">
+      <div class="royale-brand">👑 <span>LUDO ROYALE</span></div>
+      <span id="ludoRoom" class="royale-room">ROOM: #0000</span>
+      <button class="btn ghost royale-mute" id="ludoMuteBtn" aria-label="Toggle sound" title="Sound on/off">🔊</button>
     </div>
-    <div id="ludoBoard" class="ludo-board"></div>
+    <div id="ludoPlayers" class="royale-players"></div>
+    <div id="ludoBoard" class="ludo-board royale-board"></div>
+    <div class="royale-dice-zone">
+      <div class="dice-plate">
+        <button type="button" id="ludoDice" class="dice" aria-label="Roll the dice" title="Tap to roll">🎲</button>
+      </div>
+      <div class="royale-dice-text">
+        <div class="tap-roll">TAP TO ROLL!</div>
+        <button class="btn gold" id="ludoRoll">Roll dice</button>
+        <span id="ludoRollInfo" class="hint"></span>
+      </div>
+    </div>
+    <div id="ludoEmojiRow" class="royale-picker hidden"></div>
+    <div id="ludoTauntRow" class="royale-picker hidden"></div>
+    <div class="royale-actions">
+      <button class="btn ghost" id="ludoChatBtn">💬 Chat</button>
+      <button class="btn ghost" id="ludoEmojiBtn">😂 Emojis</button>
+      <button class="btn ghost" id="ludoAutoBtn" aria-pressed="false">🤖 Auto-Play: Off</button>
+      <button class="btn ghost" id="ludoThemeBtn">🎨 Theme: Gold</button>
+    </div>
     <p class="hint center">Roll, then tap one of your highlighted tokens to move it. Land on an enemy (not on a ⭐ safe square) to send them home. Get all 4 tokens to the centre to win. A 6, a capture, or finishing a token gives an extra turn.</p>
   </div>
 

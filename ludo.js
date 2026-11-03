@@ -1,4 +1,7 @@
 /* Ludo — 2-4 players, classic 15x15 board, simplified rules (no 3-sixes rule).
+   Royale UI layer: player cards, gold board dressing (yards, stars, arrows, crown),
+   emoji reactions, quick taunts, auto-play, accent themes and tiny WebAudio sounds.
+   Game logic itself is unchanged.
    Performance note: the board and token elements are built ONCE per game.
    Rolls and moves only move existing token elements between cells — the old
    version rebuilt all 225 cells (plus a 52-square scan per cell) on every
@@ -33,7 +36,12 @@ function startLudo() {
   for (var p = 0; p < n; p++) ludo.tokens.push([-1, -1, -1, -1]);
   $('ludoDice').textContent = '🎲';
   $('ludoRollInfo').textContent = '';
+  ludo.room = 1000 + Math.floor(Math.random() * 9000);
+  $('ludoRoom').textContent = 'ROOM: #' + ludo.room;
+  $('ludoEmojiRow').classList.add('hidden');
+  $('ludoTauntRow').classList.add('hidden');
   buildLudoBoard();
+  buildLudoPlayers();
   renderLudoTokens(null);
   setTurn(players[0].name + "'s turn — roll the dice!");
 }
@@ -65,10 +73,17 @@ function buildLudoBoard() {
       else if (c === 7 && r >= 9 && r <= 13) bg = PLAYER_COLORS[3];
     }
     cell.style.background = bg;
+    if (r <= 5 && c <= 5) cell.classList.add('yard-p0');
+    else if (r <= 5 && c >= 9) cell.classList.add('yard-p1');
+    else if (r >= 9 && c >= 9) cell.classList.add('yard-p2');
+    else if (r >= 9 && c <= 5) cell.classList.add('yard-p3');
+    for (var yp = 0; yp < 4; yp++) for (var yt = 0; yt < 4; yt++)
+      if (LUDO_YARD[yp][yt][0] === r && LUDO_YARD[yp][yt][1] === c) cell.classList.add('yard-home');
     var pathIdx = -1;
     for (var i = 0; i < 52; i++) if (LUDO_PATH[i][0] === r && LUDO_PATH[i][1] === c) pathIdx = i;
-    if (pathIdx >= 0 && LUDO_SAFE.indexOf(pathIdx) >= 0) cell.style.outline = '2px solid #ffd700';
-    for (var p = 0; p < 4; p++) if (LUDO_PATH[LUDO_START[p]][0] === r && LUDO_PATH[LUDO_START[p]][1] === c) cell.style.background = PLAYER_COLORS[p];
+    if (pathIdx >= 0 && LUDO_SAFE.indexOf(pathIdx) >= 0) cell.classList.add('safe');
+    for (var p = 0; p < 4; p++) if (LUDO_PATH[LUDO_START[p]][0] === r && LUDO_PATH[LUDO_START[p]][1] === c) { cell.style.background = PLAYER_COLORS[p]; cell.classList.add('start-p' + p); }
+    if (r === 7 && c === 7) cell.classList.add('crown');
     ludo.cells[r + ',' + c] = cell;
     board.appendChild(cell);
   }
@@ -105,6 +120,7 @@ function renderLudoTokens(movedKey) {
       }
     })(p, t);
   }
+  updateLudoPlayers();
 }
 function ludoMove(t) {
   if (!ludo.rolled || ludo.over) return;
@@ -127,10 +143,12 @@ function ludoMove(t) {
     }
   }
   ludo.tokens[p][t] = next;
+  if (captured) ludoSound(900, 0.12, 'triangle');
   ludo.rolled = false;
   $('ludoRollInfo').textContent = '';
   if (ludo.tokens[p].every(function(v) { return v === 57; })) {
     ludo.over = true;
+    ludoSound(523, 0.14, 'sine', 0); ludoSound(659, 0.14, 'sine', 0.14); ludoSound(784, 0.22, 'sine', 0.28);
     renderLudoTokens(null);
     setTurn('🎉 ' + players[p].name + ' wins Ludo!');
     showGameOver('🎉 ' + players[p].name + ' wins Ludo — all 4 tokens home!', p);
@@ -145,6 +163,7 @@ function ludoMove(t) {
 }
 function ludoRollDice() {
   if (currentGame !== 'ludo' || ludo.over || ludo.rolled) return;
+  ludoSound(500, 0.07, 'square');
   ludo.dice = 1 + Math.floor(Math.random() * 6);
   ludo.rolled = true;
   $('ludoDice').textContent = LUDO_DICE_FACES[ludo.dice - 1];
@@ -163,8 +182,100 @@ function ludoRollDice() {
   } else {
     setTurn(players[p].name + ' rolled ' + ludo.dice + ' — tap a highlighted token!');
     setMsg('');
+    if (ludo.autoplay) {
+      var turnAtRoll = ludo.turn;
+      setTimeout(function() {
+        if (!ludo || ludo.over || !ludo.rolled || ludo.turn !== turnAtRoll || !ludo.autoplay) return;
+        var mov = [];
+        ludo.tokens[ludo.turn].forEach(function(pr, i) { if (ludoMovable(ludo.turn, pr, ludo.dice)) mov.push(i); });
+        if (mov.length) ludoMove(mov[Math.floor(Math.random() * mov.length)]);
+      }, 700);
+    }
   }
 }
+
+/* ---- Royale extras: player cards, reactions, taunts, auto-play, themes, sound ---- */
+var ludoMuted = false;
+var ludoAudio = null;
+function ludoSound(freq, dur, type, delay) {
+  try {
+    if (ludoMuted) return;
+    ludoAudio = ludoAudio || new (window.AudioContext || window.webkitAudioContext)();
+    if (ludoAudio.state === 'suspended') ludoAudio.resume();
+    var t = ludoAudio.currentTime + (delay || 0);
+    var o = ludoAudio.createOscillator(), g = ludoAudio.createGain();
+    o.type = type || 'sine'; o.frequency.value = freq;
+    g.gain.setValueAtTime(0.12, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    o.connect(g); g.connect(ludoAudio.destination); o.start(t); o.stop(t + dur);
+  } catch (e) {}
+}
+function buildLudoPlayers() {
+  var box = $('ludoPlayers'); box.innerHTML = ''; ludo.playerCards = [];
+  for (var p = 0; p < ludo.nPlayers; p++) (function(p) {
+    var card = el('div', 'royale-player');
+    card.style.setProperty('--pc', players[p].color);
+    card.style.borderColor = players[p].color;
+    var avatar = el('div', 'royale-avatar', players[p].name.charAt(0).toUpperCase());
+    var name = el('div', 'royale-name', players[p].name);
+    var status = el('div', 'royale-status', '');
+    var bubble = el('div', 'royale-bubble', '');
+    card.appendChild(avatar); card.appendChild(name); card.appendChild(status); card.appendChild(bubble);
+    box.appendChild(card);
+    ludo.playerCards.push({ card: card, status: status, bubble: bubble });
+  })(p);
+}
+function updateLudoPlayers() {
+  if (!ludo || !ludo.playerCards) return;
+  for (var p = 0; p < ludo.nPlayers; p++) {
+    var info = ludo.playerCards[p];
+    info.card.classList.toggle('active', p === ludo.turn && !ludo.over);
+    var finished = ludo.tokens[p].filter(function(v) { return v === 57; }).length;
+    var onBoard = ludo.tokens[p].filter(function(v) { return v >= 0 && v < 57; }).length;
+    info.status.textContent = (p === ludo.turn && !ludo.over) ? 'Your turn!' : (finished === 4 ? 'Finished!' : (onBoard ? onBoard + ' on board' : 'In yard'));
+  }
+}
+function showLudoBubble(text) {
+  if (!ludo || !ludo.playerCards) return;
+  var bubble = ludo.playerCards[ludo.turn].bubble;
+  bubble.textContent = text;
+  bubble.classList.add('show');
+  clearTimeout(ludo.bubbleTimer);
+  ludo.bubbleTimer = setTimeout(function() { bubble.classList.remove('show'); }, 2600);
+}
+['😂', '😮', '👍', '😡', '🎉', '👏', '😅', '🙌'].forEach(function(e) {
+  var b = el('button', 'picker-btn', e);
+  b.setAttribute('aria-label', 'Send reaction ' + e);
+  b.onclick = function() { showLudoBubble(e); $('ludoEmojiRow').classList.add('hidden'); };
+  $('ludoEmojiRow').appendChild(b);
+});
+['Nice move!', 'Good luck!', 'Oops!', 'Your turn!', 'Brilliant!', 'Rematch?'].forEach(function(t) {
+  var b = el('button', 'picker-chip', t);
+  b.onclick = function() { showLudoBubble(t); $('ludoTauntRow').classList.add('hidden'); };
+  $('ludoTauntRow').appendChild(b);
+});
+$('ludoChatBtn').onclick = function() { $('ludoTauntRow').classList.toggle('hidden'); $('ludoEmojiRow').classList.add('hidden'); };
+$('ludoEmojiBtn').onclick = function() { $('ludoEmojiRow').classList.toggle('hidden'); $('ludoTauntRow').classList.add('hidden'); };
+$('ludoAutoBtn').onclick = function() {
+  if (!ludo) return;
+  ludo.autoplay = !ludo.autoplay;
+  this.textContent = ludo.autoplay ? '🤖 Auto-Play: On' : '🤖 Auto-Play: Off';
+  this.classList.toggle('on', ludo.autoplay);
+  this.setAttribute('aria-pressed', ludo.autoplay ? 'true' : 'false');
+};
+var LUDO_THEMES = [{ name: 'Gold', cls: '' }, { name: 'Ocean', cls: 'theme-ocean' }, { name: 'Rose', cls: 'theme-rose' }];
+var ludoThemeIdx = 0;
+$('ludoThemeBtn').onclick = function() {
+  ludoThemeIdx = (ludoThemeIdx + 1) % LUDO_THEMES.length;
+  var panel = $('game-ludo');
+  panel.classList.remove('theme-ocean', 'theme-rose');
+  if (LUDO_THEMES[ludoThemeIdx].cls) panel.classList.add(LUDO_THEMES[ludoThemeIdx].cls);
+  this.textContent = '🎨 Theme: ' + LUDO_THEMES[ludoThemeIdx].name;
+};
+$('ludoMuteBtn').onclick = function() {
+  ludoMuted = !ludoMuted;
+  this.textContent = ludoMuted ? '🔇' : '🔊';
+  this.setAttribute('aria-label', ludoMuted ? 'Unmute sound' : 'Mute sound');
+};
 // Both the dice itself and the Roll button roll — tapping the dice is a first-class control.
 $('ludoRoll').onclick = ludoRollDice;
 $('ludoDice').onclick = ludoRollDice;
