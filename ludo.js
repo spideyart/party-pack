@@ -91,10 +91,14 @@ function renderLudoTokens(movedKey) {
       if (tok.parentNode !== target) target.appendChild(tok);
       if (p === ludo.turn && ludo.rolled && !ludo.over && ludoMovable(p, progress, ludo.dice)) {
         tok.classList.add('movable');
+        tok.tabIndex = 0; tok.setAttribute('role', 'button'); tok.setAttribute('aria-label', players[p].name + ' token ' + (t + 1));
         tok.onclick = function() { ludoMove(t); };
+        tok.onkeydown = function(e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ludoMove(t); } };
       } else {
         tok.classList.remove('movable');
+        tok.tabIndex = -1;
         tok.onclick = null;
+        tok.onkeydown = null;
       }
       if (movedKey === p + '-' + t) {
         tok.classList.remove('token-moved'); void tok.offsetWidth; tok.classList.add('token-moved');

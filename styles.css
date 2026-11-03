@@ -1,7 +1,8 @@
-/* Party Pack — smooth, professional UI (v3)
+/* Party Pack — smooth, professional UI (v4)
    Smoothness rules: only transform + opacity ever animate.
    No background-position, box-shadow, or filter animations (those jank on phones).
-   One short entrance sequence; everything else is motion that answers a tap. */
+   Motion only answers a tap (dice pop, token move/pulse, button press, win popIn);
+   no entrance animation replays on navigation. */
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 :root {
   --bg1: #0f0c29; --bg2: #1e1b4b; --bg3: #312e81;
@@ -28,6 +29,7 @@
   40% { transform: scale(1.35); }
   100% { transform: scale(1); }
 }
+::selection { background: var(--gold); color: #231303; }
 body {
   margin: 0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
   color: #f5f5f5; min-height: 100vh;
@@ -65,6 +67,7 @@ button, .game-card, .ttt-cell, .c4-cell, .edge, .ship-cell, .dice, .ludo-token {
 }
 .btn:active { transform: scale(0.94); }
 .btn:focus-visible { outline: 3px solid rgba(255, 255, 255, 0.7); outline-offset: 2px; }
+.game-card:focus-visible, .ttt-cell:focus-visible, .c4-cell:focus-visible, .edge:focus-visible, .ship-cell:focus-visible, .ludo-token:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 .btn.gold { background: linear-gradient(135deg, #fde68a, var(--gold) 45%, var(--gold2)); color: #231303; box-shadow: 0 6px 20px rgba(245, 197, 24, 0.35); }
 .btn.ghost { background: rgba(255, 255, 255, 0.12); color: #fff; border: 1px solid var(--glass-border); }
 .scoreboard { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -81,7 +84,7 @@ button, .game-card, .ttt-cell, .c4-cell, .edge, .ship-cell, .dice, .ludo-token {
 .game-card:active { transform: scale(0.96); }
 .game-card .big { font-size: 38px; }
 .game-card span:last-child { color: rgba(255, 255, 255, 0.68); font-size: 12px; }
-.game-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.game-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
 .game-top h2 { margin: 0; font-size: 20px; }
 .turn-banner {
   margin: 12px 0 4px; padding: 12px 16px; border-radius: 16px;
@@ -102,7 +105,7 @@ button, .game-card, .ttt-cell, .c4-cell, .edge, .ship-cell, .dice, .ludo-token {
 }
 /* Ludo controls stay visible while the board scrolls */
 .ludo-controls {
-  position: sticky; top: 0; z-index: 5;
+  position: sticky; top: 0; z-index: 5; justify-content: center;
   background: rgba(15, 12, 41, 0.92); border-radius: 16px; padding: 10px;
   margin: -4px -4px 10px;
 }

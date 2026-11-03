@@ -120,7 +120,9 @@ function renderC4() {
     var c = el('div', 'c4-cell');
     var v = c4.grid[r][col];
     if (v >= 0) c.style.background = players[v].color;
+    c.tabIndex = 0; c.setAttribute('role', 'button'); c.setAttribute('aria-label', 'Drop disc in column ' + (col + 1));
     c.onclick = function() { c4Drop(col); };
+    c.onkeydown = function(e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); c4Drop(col); } };
     b.appendChild(c);
   })(r, col);
 }
@@ -181,12 +183,14 @@ function renderDots() {
       cell = el('div', 'dots-cell edge' + (owner >= 0 ? ' claimed' : ''));
       if (owner >= 0) cell.style.background = players[owner].color;
       cell.onclick = function() { dotsClaim('h', hr, hc); };
+      if (owner < 0) { cell.tabIndex = 0; cell.setAttribute('role', 'button'); cell.setAttribute('aria-label', 'Claim this edge'); cell.onkeydown = function(e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); dotsClaim('h', hr, hc); } }; }
     }
     else if (gc % 2 === 0) { // vertical edge
       var vr = (gr - 1) / 2, vc = gc / 2, owner2 = dots.v[vr][vc];
       cell = el('div', 'dots-cell edge' + (owner2 >= 0 ? ' claimed' : ''));
       if (owner2 >= 0) cell.style.background = players[owner2].color;
       cell.onclick = function() { dotsClaim('v', vr, vc); };
+      if (owner2 < 0) { cell.tabIndex = 0; cell.setAttribute('role', 'button'); cell.setAttribute('aria-label', 'Claim this edge'); cell.onkeydown = function(e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); dotsClaim('v', vr, vc); } }; }
     }
     else { // box
       var br = (gr - 1) / 2, bc = (gc - 1) / 2, bo = dots.boxes[br][bc];
@@ -239,7 +243,7 @@ document.querySelectorAll('.game-card').forEach(function(card) {
     else if (g === 'ludo') startLudo();
   });
 });
-$('btnSavePlayers').onclick = function() { savePlayers(); setMsg(''); alert('Players saved!'); };
+$('btnSavePlayers').onclick = function() { savePlayers(); $('saveNote').textContent = '✓ Players saved'; setTimeout(function() { $('saveNote').textContent = ''; }, 2000); };
 $('btnResetScores').onclick = function() { wins = {}; try { localStorage.removeItem('partyPackWins'); } catch (e) {} renderScoreboard(); };
 $('btnBack').onclick = showHome;
 $('btnHome2').onclick = showHome;

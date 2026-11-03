@@ -61,14 +61,19 @@ function renderShipGrid(grid, isPlacement) {
   b.style.gridTemplateColumns = 'repeat(8, 1fr)';
   for (var r = 0; r < 8; r++) for (var c = 0; c < 8; c++) (function(r, c) {
     var cell = el('div', 'ship-cell');
+    cell.tabIndex = 0; cell.setAttribute('role', 'button');
     if (isPlacement) {
       if (grid[r][c] === 1) { cell.style.background = players[ships.placer].color; cell.textContent = '🚢'; }
+      cell.setAttribute('aria-label', 'Place ship here');
       cell.onclick = function() { placeShip(r, c); };
+      cell.onkeydown = function(e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); placeShip(r, c); } };
     } else {
       var s = grid[r][c];
       if (s === 'hit') { cell.style.background = '#e74c3c'; cell.textContent = '💥'; }
       else if (s === 'miss') { cell.style.background = '#555'; cell.textContent = '⚪'; }
+      cell.setAttribute('aria-label', 'Shoot this square');
       cell.onclick = function() { fireShot(r, c); };
+      cell.onkeydown = function(e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fireShot(r, c); } };
     }
     b.appendChild(cell);
   })(r, c);
