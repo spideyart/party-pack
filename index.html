@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Party Pack — 5 Games, One Phone</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="topbar">
+  <h1>🎉 Party Pack</h1>
+  <p>5 games. One phone. Pass it around.</p>
+</header>
+
+<!-- HOME -->
+<section id="view-home" class="view">
+  <div class="card">
+    <h2>Players</h2>
+    <p class="hint">Enter 2–4 names. Games use as many as they need (Tic-Tac-Toe, Connect Four and Battleship use the first 2).</p>
+    <div class="player-inputs">
+      <input id="pname0" placeholder="Player 1 name" maxlength="14">
+      <input id="pname1" placeholder="Player 2 name" maxlength="14">
+      <input id="pname2" placeholder="Player 3 name (optional)" maxlength="14">
+      <input id="pname3" placeholder="Player 4 name (optional)" maxlength="14">
+    </div>
+    <div class="row">
+      <button class="btn gold" id="btnSavePlayers">Save players</button>
+      <button class="btn ghost" id="btnResetScores">Reset scores</button>
+    </div>
+    <h3>🏆 Scoreboard <span class="hint">(wins across all games)</span></h3>
+    <div id="scoreboard" class="scoreboard"></div>
+  </div>
+
+  <div class="games-grid">
+    <button class="game-card" data-game="ludo"><span class="big">🎲</span><strong>Ludo</strong><span>2–4 players · full rules</span></button>
+    <button class="game-card" data-game="ttt"><span class="big">❌</span><strong>Tic-Tac-Toe</strong><span>2 players · best of rounds</span></button>
+    <button class="game-card" data-game="c4"><span class="big">🔴</span><strong>Connect Four</strong><span>2 players · drop &amp; connect</span></button>
+    <button class="game-card" data-game="dots"><span class="big">⬜</span><strong>Dots &amp; Boxes</strong><span>2–4 players · claim boxes</span></button>
+    <button class="game-card" data-game="ships"><span class="big">🚢</span><strong>Battleship</strong><span>2 players · hotseat, don't peek!</span></button>
+  </div>
+  <p class="hint center">Works offline once loaded — no accounts, no internet needed while playing.</p>
+</section>
+
+<!-- SHARED GAME SHELL -->
+<section id="view-game" class="view hidden">
+  <div class="game-top">
+    <button class="btn ghost" id="btnBack">← Home</button>
+    <h2 id="gameTitle"></h2>
+    <button class="btn ghost" id="btnRestart">↻ Restart</button>
+  </div>
+  <div id="turnBanner" class="turn-banner"></div>
+  <div id="gameMsg" class="game-msg"></div>
+
+  <!-- Tic-Tac-Toe -->
+  <div id="game-ttt" class="game-panel hidden">
+    <div id="tttBoard" class="ttt-board"></div>
+    <p class="hint center">Tap a square. First to 3 in a row wins the round.</p>
+  </div>
+
+  <!-- Connect Four -->
+  <div id="game-c4" class="game-panel hidden">
+    <div id="c4Board" class="c4-board"></div>
+    <p class="hint center">Tap a column to drop your disc. First to connect 4 wins.</p>
+  </div>
+
+  <!-- Dots and Boxes -->
+  <div id="game-dots" class="game-panel hidden">
+    <div id="dotsBoard" class="dots-board"></div>
+    <p class="hint center">Tap an edge to claim it. Complete a box to claim it — and go again!</p>
+  </div>
+
+  <!-- Battleship -->
+  <div id="game-ships" class="game-panel hidden">
+    <div id="shipsControls" class="row wrap"></div>
+    <div id="shipsBoard" class="ships-board"></div>
+    <p id="shipsHint" class="hint center"></p>
+  </div>
+
+  <!-- Ludo -->
+  <div id="game-ludo" class="game-panel hidden">
+    <div class="row wrap center">
+      <div id="ludoDice" class="dice">🎲</div>
+      <button class="btn gold" id="ludoRoll">Roll dice</button>
+      <span id="ludoRollInfo" class="hint"></span>
+    </div>
+    <div id="ludoBoard" class="ludo-board"></div>
+    <p class="hint center">Roll, then tap one of your highlighted tokens to move it. Land on an enemy (not on a ⭐ safe square) to send them home. Get all 4 tokens to the centre to win. A 6, a capture, or finishing a token gives an extra turn.</p>
+  </div>
+
+  <div id="gameOver" class="game-over hidden">
+    <h3 id="gameOverText"></h3>
+    <button class="btn gold" id="btnPlayAgain">Play again</button>
+    <button class="btn ghost" id="btnHome2">Back to games</button>
+  </div>
+</section>
+
+<script src="app.js"></script>
+<script src="battleship.js"></script>
+<script src="ludo.js"></script>
+<script>
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  navigator.serviceWorker.register('sw.js').catch(function(){});
+}
+</script>
+</body>
+</html>
