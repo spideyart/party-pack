@@ -125,11 +125,13 @@ function ludoMove(t) {
   if (captured) setMsg('💥 ' + players[p].name + ' captured a token! Extra turn.');
   else setMsg('');
 }
-$('ludoRoll').onclick = function() {
+function ludoRollDice() {
   if (currentGame !== 'ludo' || ludo.over || ludo.rolled) return;
   ludo.dice = 1 + Math.floor(Math.random() * 6);
   ludo.rolled = true;
   $('ludoDice').textContent = LUDO_DICE_FACES[ludo.dice - 1];
+  var diceEl = $('ludoDice');
+  diceEl.classList.remove('dice-pop'); void diceEl.offsetWidth; diceEl.classList.add('dice-pop');
   $('ludoRollInfo').textContent = 'Rolled a ' + ludo.dice;
   var p = ludo.turn;
   var any = ludo.tokens[p].some(function(pr) { return ludoMovable(p, pr, ludo.dice); });
@@ -144,4 +146,10 @@ $('ludoRoll').onclick = function() {
     setTurn(players[p].name + ' rolled ' + ludo.dice + ' — tap a highlighted token!');
     setMsg('');
   }
-};
+}
+// Both the dice itself and the Roll button roll — tapping the dice is now a first-class control.
+$('ludoRoll').onclick = ludoRollDice;
+$('ludoDice').onclick = ludoRollDice;
+$('ludoDice').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ludoRollDice(); }
+});

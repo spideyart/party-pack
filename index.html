@@ -78,10 +78,11 @@
 
   <!-- Ludo -->
   <div id="game-ludo" class="game-panel hidden">
-    <div class="row wrap center">
-      <div id="ludoDice" class="dice">🎲</div>
+    <div class="row wrap center ludo-controls">
+      <button type="button" id="ludoDice" class="dice" aria-label="Roll the dice" title="Tap to roll">🎲</button>
       <button class="btn gold" id="ludoRoll">Roll dice</button>
       <span id="ludoRollInfo" class="hint"></span>
+      <span class="hint">Tap the dice or Roll to play</span>
     </div>
     <div id="ludoBoard" class="ludo-board"></div>
     <p class="hint center">Roll, then tap one of your highlighted tokens to move it. Land on an enemy (not on a ⭐ safe square) to send them home. Get all 4 tokens to the centre to win. A 6, a capture, or finishing a token gives an extra turn.</p>
