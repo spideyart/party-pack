@@ -48,6 +48,9 @@
   <div class="game-top">
     <button class="btn ghost" id="btnBack">← Home</button>
     <h2 id="gameTitle"></h2>
+    <button class="btn ghost" id="btnHowTo">ⓘ How to play</button>
+    <button class="btn ghost" id="btnSound" aria-label="Toggle sound">🔊</button>
+    <button class="btn ghost" id="btnFullscreen">⛶ Fullscreen</button>
     <button class="btn ghost" id="btnRestart">↻ Restart</button>
   </div>
   <div id="turnBanner" class="turn-banner"></div>
@@ -56,26 +59,23 @@
   <!-- Tic-Tac-Toe -->
   <div id="game-ttt" class="game-panel hidden">
     <div id="tttBoard" class="ttt-board"></div>
-    <p class="hint center">Tap a square. First to 3 in a row wins the round.</p>
   </div>
 
   <!-- Connect Four -->
   <div id="game-c4" class="game-panel hidden">
     <div id="c4Board" class="c4-board"></div>
-    <p class="hint center">Tap a column to drop your disc. First to connect 4 wins.</p>
   </div>
 
   <!-- Dots and Boxes -->
   <div id="game-dots" class="game-panel hidden">
     <div id="dotsBoard" class="dots-board"></div>
-    <p class="hint center">Tap an edge to claim it. Complete a box to claim it — and go again!</p>
   </div>
 
   <!-- Battleship -->
   <div id="game-ships" class="game-panel hidden">
     <div id="shipsControls" class="row wrap"></div>
-    <div id="shipsBoard" class="ships-board"></div>
     <p id="shipsHint" class="hint center"></p>
+    <div id="shipsBoard" class="ships-board"></div>
   </div>
 
   <!-- Ludo — Royale look, modelled on the Ludo Royale reference image -->
@@ -97,15 +97,12 @@
         <span id="ludoRollInfo" class="hint"></span>
       </div>
     </div>
-    <div id="ludoEmojiRow" class="royale-picker hidden"></div>
     <div id="ludoTauntRow" class="royale-picker hidden"></div>
     <div class="royale-actions">
       <button class="btn ghost" id="ludoChatBtn">💬 Chat</button>
-      <button class="btn ghost" id="ludoEmojiBtn">😂 Emojis</button>
       <button class="btn ghost" id="ludoAutoBtn" aria-pressed="false">🤖 Auto-Play: Off</button>
       <button class="btn ghost" id="ludoThemeBtn">🎨 Theme: Gold</button>
     </div>
-    <p class="hint center">Roll, then tap one of your highlighted tokens to move it. Land on an enemy (not on a ⭐ safe square) to send them home. Get all 4 tokens to the centre to win. A 6, a capture, or finishing a token gives an extra turn.</p>
   </div>
 
   <div id="gameOver" class="game-over hidden">
@@ -114,6 +111,14 @@
     <button class="btn ghost" id="btnHome2">Back to games</button>
   </div>
 </section>
+
+<div id="howToOverlay" class="howto-overlay hidden">
+  <div class="howto-card">
+    <h2 id="howToTitle"></h2>
+    <p id="howToText"></p>
+    <div class="row"><button class="btn gold" id="btnHowToAction">Skip &amp; Play</button></div>
+  </div>
+</div>
 
 <script src="app.js"></script>
 <script src="battleship.js"></script>

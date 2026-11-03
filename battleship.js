@@ -89,6 +89,7 @@ function placeShip(r, c) {
   }
   cells.forEach(function(pos) { board[pos[0]][pos[1]] = 1; });
   setMsg('');
+  playSound('place');
   ships.shipIdx++;
   if (ships.shipIdx >= SHIP_DEFS.length) {
     if (ships.placer === 0) { ships.placer = 1; ships.shipIdx = 0; ships.phase = 'hide'; }
@@ -104,15 +105,17 @@ function fireShot(r, c) {
   ships.shots[shooter][r][c] = hit ? 'hit' : 'miss';
   var sunk = hit && shipsRemaining(target, shooter) === 0;
   if (sunk) {
-    ships.over = true;
+    ships.over = true; playSound('win');
     renderShips();
     setTurn('🎉 ' + players[shooter].name + ' sinks the fleet!');
     showGameOver('🎉 ' + players[shooter].name + ' wins Battleship — the whole enemy fleet is sunk!', shooter);
   } else if (hit) {
     renderShips();
+    playSound('hit');
     setMsg('💥 Hit! ' + players[shooter].name + ' shoots again.');
   } else {
     ships.turn = target;
+    playSound('miss');
     renderShips();
   }
 }

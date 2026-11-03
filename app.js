@@ -3,6 +3,45 @@ var PLAYER_COLORS = ['#e74c3c', '#27ae60', '#f1c40f', '#3498db'];
 var PLAYER_EMOJI = ['🔴', '🟢', '🟡', '🔵'];
 var players = [];       // [{name, color}]
 var wins = {};          // name -> wins
+/* Shared game sounds (tiny WebAudio tones, no audio files) + sound toggle */
+var soundMuted = false;
+try { soundMuted = localStorage.getItem('partyPackMuted') === '1'; } catch (e) {}
+var audioCtx = null;
+function playTone(freq, dur, type, delay, vol) {
+  try {
+    if (soundMuted) return;
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    var t = audioCtx.currentTime + (delay || 0);
+    var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = type || 'sine'; o.frequency.value = freq;
+    g.gain.setValueAtTime(vol || 0.09, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    o.connect(g); g.connect(audioCtx.destination); o.start(t); o.stop(t + dur);
+  } catch (e) {}
+}
+function playSound(name) {
+  if (name === 'tap') playTone(700, 0.06, 'sine');
+  else if (name === 'place') playTone(520, 0.08, 'sine');
+  else if (name === 'drop') { playTone(300, 0.1, 'triangle'); playTone(200, 0.12, 'triangle', 0.05); }
+  else if (name === 'claim') playTone(660, 0.1, 'sine');
+  else if (name === 'box') { playTone(660, 0.1, 'sine'); playTone(880, 0.14, 'sine', 0.09); }
+  else if (name === 'hit') playTone(900, 0.1, 'triangle');
+  else if (name === 'miss') playTone(180, 0.12, 'sine');
+  else if (name === 'win') { playTone(523, 0.14, 'sine'); playTone(659, 0.14, 'sine', 0.12); playTone(784, 0.22, 'sine', 0.24); }
+}
+function updateSoundButtons() {
+  var b1 = $('btnSound'); if (b1) b1.textContent = soundMuted ? '🔇' : '🔊';
+  var b2 = $('ludoMuteBtn');
+  if (b2) { b2.textContent = soundMuted ? '🔇' : '🔊'; b2.setAttribute('aria-label', soundMuted ? 'Unmute sound' : 'Mute sound'); }
+}
+function setMuted(m) {
+  soundMuted = m;
+  try { localStorage.setItem('partyPackMuted', soundMuted ? '1' : '0'); } catch (e) {}
+  updateSoundButtons();
+}
+/* Viewport zoom: allowed everywhere except Ludo, which does not need it */
+function setViewportZoomable() { var m = document.querySelector('meta[name=viewport]'); if (m) m.setAttribute('content', 'width=device-width, initial-scale=1.0'); }
+function setViewportNoZoom() { var m = document.querySelector('meta[name=viewport]'); if (m) m.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no'); }
 var currentGame = null; // 'ttt' | 'c4' | 'dots' | 'ships' | 'ludo'
 var gameOver = false;
 
@@ -66,10 +105,11 @@ function showHome() {
   currentGame = null;
   $('view-home').classList.remove('hidden');
   $('view-game').classList.add('hidden');
+  setViewportZoomable();
   renderScoreboard();
 }
 function showGame(game, title) {
-  currentGame = game; hideGameOver(); setMsg('');
+  currentGame = game; hideGameOver(); setMsg(''); setViewportZoomable();
   $('view-home').classList.add('hidden');
   $('view-game').classList.remove('hidden');
   $('gameTitle').textContent = title;
@@ -91,8 +131,9 @@ function startTTT() {
       if (ttt.over || ttt.board[i]) return;
       ttt.board[i] = marks[ttt.turn]; c.textContent = marks[ttt.turn];
       c.style.color = players[ttt.turn].color;
+      playSound('place');
       var w = tttWinner();
-      if (w) { ttt.over = true; setTurn('🎉 ' + players[ttt.turn].name + ' wins the round!'); showGameOver('🎉 ' + players[ttt.turn].name + ' wins Tic-Tac-Toe!', ttt.turn); }
+      if (w) { ttt.over = true; playSound('win'); setTurn('🎉 ' + players[ttt.turn].name + ' wins the round!'); showGameOver('🎉 ' + players[ttt.turn].name + ' wins Tic-Tac-Toe!', ttt.turn); }
       else if (ttt.board.every(Boolean)) { ttt.over = true; setTurn("It's a draw!"); showGameOver("It's a draw — no winner this round.", null); }
       else { ttt.turn = 1 - ttt.turn; setTurn(players[ttt.turn].name + "'s turn (" + marks[ttt.turn] + ')'); }
     };
@@ -133,10 +174,11 @@ function c4Drop(col) {
   if (row === -1) { setMsg('That column is full — try another one.'); return; }
   setMsg('');
   c4.grid[row][col] = c4.turn;
+  playSound('drop');
   var winCells = c4WinCells(row, col, c4.turn);
   renderC4();
   if (winCells) {
-    c4.over = true;
+    c4.over = true; playSound('win');
     var cells = $('c4Board').children;
     winCells.forEach(function(pos) { cells[pos[0] * 7 + pos[1]].classList.add('win'); });
     setTurn('🎉 ' + players[c4.turn].name + ' connects four!');
@@ -215,7 +257,7 @@ function dotsClaim(kind, r, c) {
   }
   renderDots();
   if (dots.boxes.every(function(rowArr) { return rowArr.every(function(v) { return v >= 0; }); })) {
-    dots.over = true;
+    dots.over = true; playSound('win');
     var counts = players.slice(0, dots.nPlayers).map(function() { return 0; });
     dots.boxes.forEach(function(rowArr) { rowArr.forEach(function(v) { counts[v]++; }); });
     var best = 0; for (var i = 1; i < counts.length; i++) if (counts[i] > counts[best]) best = i;
@@ -223,9 +265,11 @@ function dotsClaim(kind, r, c) {
     setTurn('🏆 ' + players[best].name + ' wins Dots & Boxes! (' + scoreText + ')');
     showGameOver('🏆 ' + players[best].name + ' wins Dots & Boxes! ' + scoreText, best);
   } else if (claimed > 0) {
+    playSound('box');
     setTurn(players[dots.turn].name + ' completed a box — go again!');
     setMsg('Nice! ' + claimed + ' box(es) claimed. Same player goes again.');
   } else {
+    playSound('claim');
     dots.turn = (dots.turn + 1) % dots.nPlayers;
     setTurn(players[dots.turn].name + "'s turn");
   }
@@ -235,12 +279,8 @@ function dotsClaim(kind, r, c) {
 document.querySelectorAll('.game-card').forEach(function(card) {
   card.addEventListener('click', function() {
     savePlayers();
-    var g = card.getAttribute('data-game');
-    if (g === 'ttt') startTTT();
-    else if (g === 'c4') startC4();
-    else if (g === 'dots') startDots();
-    else if (g === 'ships') startShips();
-    else if (g === 'ludo') startLudo();
+    pendingGame = card.getAttribute('data-game');
+    showHowTo(pendingGame, 'start');
   });
 });
 $('btnSavePlayers').onclick = function() { savePlayers(); $('saveNote').textContent = '✓ Players saved'; setTimeout(function() { $('saveNote').textContent = ''; }, 2000); };
@@ -255,5 +295,43 @@ $('btnPlayAgain').onclick = function() {
   else if (currentGame === 'ludo') startLudo();
 };
 $('btnRestart').onclick = function() { $('btnPlayAgain').onclick(); };
+/* How-to-play: a note before the game opens, with Skip & Play; also reopenable from the top bar */
+var HOW_TO = {
+  ttt: { title: '❌ Tic-Tac-Toe', text: 'Tap a square. First to 3 in a row wins the round.' },
+  c4: { title: '🔴 Connect Four', text: 'Tap a column to drop your disc. First to connect 4 wins.' },
+  dots: { title: '⬜ Dots & Boxes', text: 'Tap an edge to claim it. Complete a box to claim it — and go again!' },
+  ships: { title: '🚢 Battleship', text: 'Place your ships: tap a square to place each ship, switching orientation when you need to. Then take turns shooting — a hit gives another shot. Sink the whole enemy fleet to win. Pass the phone between placements, and don\'t peek!' },
+  ludo: { title: '🎲 Ludo', text: 'Roll, then tap one of your highlighted tokens to move it. Land on an enemy (not on a ⭐ safe square) to send them home. Get all 4 tokens to the centre to win. A 6, a capture, or finishing a token gives an extra turn.' }
+};
+var pendingGame = null;
+function startGameByKey(g) {
+  if (g === 'ttt') startTTT();
+  else if (g === 'c4') startC4();
+  else if (g === 'dots') startDots();
+  else if (g === 'ships') startShips();
+  else if (g === 'ludo') startLudo();
+}
+function showHowTo(game, mode) {
+  $('howToTitle').textContent = HOW_TO[game].title;
+  $('howToText').textContent = HOW_TO[game].text;
+  $('btnHowToAction').textContent = mode === 'info' ? 'Close' : 'Skip & Play';
+  $('btnHowToAction').onclick = function() {
+    $('howToOverlay').classList.add('hidden');
+    if (mode !== 'info' && pendingGame) startGameByKey(pendingGame);
+  };
+  $('howToOverlay').classList.remove('hidden');
+}
+$('btnHowTo').onclick = function() { if (currentGame) showHowTo(currentGame, 'info'); };
+$('btnSound').onclick = function() { setMuted(!soundMuted); };
+function updateFullscreenBtn() { var b = $('btnFullscreen'); if (b) b.textContent = document.fullscreenElement ? '⛶ Exit fullscreen' : '⛶ Fullscreen'; }
+$('btnFullscreen').onclick = function() {
+  try {
+    if (document.fullscreenElement) { var p1 = document.exitFullscreen(); if (p1 && p1.catch) p1.catch(function() {}); }
+    else { var p2 = document.documentElement.requestFullscreen(); if (p2 && p2.catch) p2.catch(function() {}); }
+  } catch (e) {}
+};
+document.addEventListener('fullscreenchange', updateFullscreenBtn);
+if (!document.fullscreenEnabled) $('btnFullscreen').style.display = 'none';
+updateSoundButtons();
 loadSaved();
 renderScoreboard();

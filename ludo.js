@@ -1,6 +1,6 @@
 /* Ludo — 2-4 players, classic 15x15 board, simplified rules (no 3-sixes rule).
    Royale UI layer: player cards, gold board dressing (yards, stars, arrows, crown),
-   emoji reactions, quick taunts, auto-play, accent themes and tiny WebAudio sounds.
+   quick taunts, auto-play, accent themes and tiny WebAudio sounds.
    Game logic itself is unchanged.
    Performance note: the board and token elements are built ONCE per game.
    Rolls and moves only move existing token elements between cells — the old
@@ -31,6 +31,7 @@ var LUDO_DICE_FACES = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
 
 function startLudo() {
   showGame('ludo', '🎲 Ludo');
+  setViewportNoZoom();
   var n = Math.max(2, Math.min(4, players.length));
   ludo = { nPlayers: n, turn: 0, dice: 0, rolled: false, over: false, tokens: [], cells: {}, tokenEls: [] };
   for (var p = 0; p < n; p++) ludo.tokens.push([-1, -1, -1, -1]);
@@ -38,7 +39,6 @@ function startLudo() {
   $('ludoRollInfo').textContent = '';
   ludo.room = 1000 + Math.floor(Math.random() * 9000);
   $('ludoRoom').textContent = 'ROOM: #' + ludo.room;
-  $('ludoEmojiRow').classList.add('hidden');
   $('ludoTauntRow').classList.add('hidden');
   buildLudoBoard();
   buildLudoPlayers();
@@ -143,7 +143,7 @@ function ludoMove(t) {
     }
   }
   ludo.tokens[p][t] = next;
-  if (captured) ludoSound(900, 0.12, 'triangle');
+  if (captured) ludoSound(900, 0.12, 'triangle'); else playSound('tap');
   ludo.rolled = false;
   $('ludoRollInfo').textContent = '';
   if (ludo.tokens[p].every(function(v) { return v === 57; })) {
@@ -195,19 +195,8 @@ function ludoRollDice() {
 }
 
 /* ---- Royale extras: player cards, reactions, taunts, auto-play, themes, sound ---- */
-var ludoMuted = false;
-var ludoAudio = null;
 function ludoSound(freq, dur, type, delay) {
-  try {
-    if (ludoMuted) return;
-    ludoAudio = ludoAudio || new (window.AudioContext || window.webkitAudioContext)();
-    if (ludoAudio.state === 'suspended') ludoAudio.resume();
-    var t = ludoAudio.currentTime + (delay || 0);
-    var o = ludoAudio.createOscillator(), g = ludoAudio.createGain();
-    o.type = type || 'sine'; o.frequency.value = freq;
-    g.gain.setValueAtTime(0.12, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
-    o.connect(g); g.connect(ludoAudio.destination); o.start(t); o.stop(t + dur);
-  } catch (e) {}
+  playTone(freq, dur, type, delay); /* shared helper in app.js, honours the shared mute */
 }
 function buildLudoPlayers() {
   var box = $('ludoPlayers'); box.innerHTML = ''; ludo.playerCards = [];
@@ -242,19 +231,12 @@ function showLudoBubble(text) {
   clearTimeout(ludo.bubbleTimer);
   ludo.bubbleTimer = setTimeout(function() { bubble.classList.remove('show'); }, 2600);
 }
-['😂', '😮', '👍', '😡', '🎉', '👏', '😅', '🙌'].forEach(function(e) {
-  var b = el('button', 'picker-btn', e);
-  b.setAttribute('aria-label', 'Send reaction ' + e);
-  b.onclick = function() { showLudoBubble(e); $('ludoEmojiRow').classList.add('hidden'); };
-  $('ludoEmojiRow').appendChild(b);
-});
 ['Nice move!', 'Good luck!', 'Oops!', 'Your turn!', 'Brilliant!', 'Rematch?'].forEach(function(t) {
   var b = el('button', 'picker-chip', t);
   b.onclick = function() { showLudoBubble(t); $('ludoTauntRow').classList.add('hidden'); };
   $('ludoTauntRow').appendChild(b);
 });
-$('ludoChatBtn').onclick = function() { $('ludoTauntRow').classList.toggle('hidden'); $('ludoEmojiRow').classList.add('hidden'); };
-$('ludoEmojiBtn').onclick = function() { $('ludoEmojiRow').classList.toggle('hidden'); $('ludoTauntRow').classList.add('hidden'); };
+$('ludoChatBtn').onclick = function() { $('ludoTauntRow').classList.toggle('hidden'); };
 $('ludoAutoBtn').onclick = function() {
   if (!ludo) return;
   ludo.autoplay = !ludo.autoplay;
@@ -271,11 +253,7 @@ $('ludoThemeBtn').onclick = function() {
   if (LUDO_THEMES[ludoThemeIdx].cls) panel.classList.add(LUDO_THEMES[ludoThemeIdx].cls);
   this.textContent = '🎨 Theme: ' + LUDO_THEMES[ludoThemeIdx].name;
 };
-$('ludoMuteBtn').onclick = function() {
-  ludoMuted = !ludoMuted;
-  this.textContent = ludoMuted ? '🔇' : '🔊';
-  this.setAttribute('aria-label', ludoMuted ? 'Unmute sound' : 'Mute sound');
-};
+$('ludoMuteBtn').onclick = function() { setMuted(!soundMuted); };
 // Both the dice itself and the Roll button roll — tapping the dice is a first-class control.
 $('ludoRoll').onclick = ludoRollDice;
 $('ludoDice').onclick = ludoRollDice;
