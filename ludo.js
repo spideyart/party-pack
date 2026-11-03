@@ -1,4 +1,8 @@
-/* Ludo — 2-4 players, classic 15x15 board, simplified rules (no 3-sixes rule) */
+/* Ludo — 2-4 players, classic 15x15 board, simplified rules (no 3-sixes rule).
+   Performance note: the board and token elements are built ONCE per game.
+   Rolls and moves only move existing token elements between cells — the old
+   version rebuilt all 225 cells (plus a 52-square scan per cell) on every
+   roll, which is what made the board flash and stutter on phones. */
 var ludo = null;
 var LUDO_PATH = [
   [6,1],[6,2],[6,3],[6,4],[6,5],[5,6],[4,6],[3,6],[2,6],[1,6],[0,6],[0,7],[0,8],
@@ -25,15 +29,15 @@ var LUDO_DICE_FACES = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
 function startLudo() {
   showGame('ludo', '🎲 Ludo');
   var n = Math.max(2, Math.min(4, players.length));
-  ludo = { nPlayers: n, turn: 0, dice: 0, rolled: false, over: false, tokens: [] };
+  ludo = { nPlayers: n, turn: 0, dice: 0, rolled: false, over: false, tokens: [], cells: {}, tokenEls: [] };
   for (var p = 0; p < n; p++) ludo.tokens.push([-1, -1, -1, -1]);
   $('ludoDice').textContent = '🎲';
   $('ludoRollInfo').textContent = '';
-  renderLudo();
+  buildLudoBoard();
+  renderLudoTokens(null);
   setTurn(players[0].name + "'s turn — roll the dice!");
 }
 function ludoTokenCell(p, progress) {
-  if (progress === -1) return null; // yard handled separately by token index
   if (progress <= 51) return LUDO_PATH[(LUDO_START[p] + progress) % 52];
   if (progress <= 56) return LUDO_HOME[p][progress - 52];
   return [7, 7]; // finished, centre
@@ -43,9 +47,9 @@ function ludoMovable(p, progress, dice) {
   if (progress === 57) return false;
   return progress + dice <= 57;
 }
-function renderLudo() {
+function buildLudoBoard() {
   var board = $('ludoBoard'); board.innerHTML = '';
-  var cells = {};
+  ludo.cells = {}; ludo.tokenEls = [];
   for (var r = 0; r < 15; r++) for (var c = 0; c < 15; c++) {
     var cell = el('div', 'ludo-cell');
     var bg = '#f2f2f2';
@@ -55,36 +59,46 @@ function renderLudo() {
     else if (r >= 9 && c <= 5) bg = PLAYER_COLORS[3];
     else if (r >= 6 && r <= 8 && c >= 6 && c <= 8) bg = '#d4af37';
     else {
-      // home columns
       if (r === 7 && c >= 1 && c <= 5) bg = PLAYER_COLORS[0];
       else if (c === 7 && r >= 1 && r <= 5) bg = PLAYER_COLORS[1];
       else if (r === 7 && c >= 9 && c <= 13) bg = PLAYER_COLORS[2];
       else if (c === 7 && r >= 9 && r <= 13) bg = PLAYER_COLORS[3];
     }
     cell.style.background = bg;
-    // safe squares get a gold outline
     var pathIdx = -1;
     for (var i = 0; i < 52; i++) if (LUDO_PATH[i][0] === r && LUDO_PATH[i][1] === c) pathIdx = i;
     if (pathIdx >= 0 && LUDO_SAFE.indexOf(pathIdx) >= 0) cell.style.outline = '2px solid #ffd700';
-    // start squares keep their player colour
     for (var p = 0; p < 4; p++) if (LUDO_PATH[LUDO_START[p]][0] === r && LUDO_PATH[LUDO_START[p]][1] === c) cell.style.background = PLAYER_COLORS[p];
-    cells[r + ',' + c] = cell;
+    ludo.cells[r + ',' + c] = cell;
     board.appendChild(cell);
   }
-  // place tokens
+  for (var p = 0; p < ludo.nPlayers; p++) {
+    ludo.tokenEls.push([]);
+    for (var t = 0; t < 4; t++) {
+      var tok = el('div', 'ludo-token', String(t + 1));
+      tok.style.background = players[p].color;
+      ludo.tokenEls[p].push(tok);
+    }
+  }
+}
+function renderLudoTokens(movedKey) {
   for (var p = 0; p < ludo.nPlayers; p++) {
     for (var t = 0; t < 4; t++) (function(p, t) {
       var progress = ludo.tokens[p][t];
-      var pos;
-      if (progress === -1) pos = LUDO_YARD[p][t];
-      else pos = ludoTokenCell(p, progress);
-      var tok = el('div', 'ludo-token', String(t + 1));
-      tok.style.background = players[p].color;
+      var pos = (progress === -1) ? LUDO_YARD[p][t] : ludoTokenCell(p, progress);
+      var tok = ludo.tokenEls[p][t];
+      var target = ludo.cells[pos[0] + ',' + pos[1]];
+      if (tok.parentNode !== target) target.appendChild(tok);
       if (p === ludo.turn && ludo.rolled && !ludo.over && ludoMovable(p, progress, ludo.dice)) {
         tok.classList.add('movable');
         tok.onclick = function() { ludoMove(t); };
+      } else {
+        tok.classList.remove('movable');
+        tok.onclick = null;
       }
-      cells[pos[0] + ',' + pos[1]].appendChild(tok);
+      if (movedKey === p + '-' + t) {
+        tok.classList.remove('token-moved'); void tok.offsetWidth; tok.classList.add('token-moved');
+      }
     })(p, t);
   }
 }
@@ -113,14 +127,14 @@ function ludoMove(t) {
   $('ludoRollInfo').textContent = '';
   if (ludo.tokens[p].every(function(v) { return v === 57; })) {
     ludo.over = true;
-    renderLudo();
+    renderLudoTokens(null);
     setTurn('🎉 ' + players[p].name + ' wins Ludo!');
     showGameOver('🎉 ' + players[p].name + ' wins Ludo — all 4 tokens home!', p);
     return;
   }
   var extra = (ludo.dice === 6) || captured || next === 57;
   if (!extra) ludo.turn = (ludo.turn + 1) % ludo.nPlayers;
-  renderLudo();
+  renderLudoTokens(p + '-' + t);
   setTurn(players[ludo.turn].name + "'s turn — roll the dice!" + (captured ? ' (Captured! Extra turn.)' : ''));
   if (captured) setMsg('💥 ' + players[p].name + ' captured a token! Extra turn.');
   else setMsg('');
@@ -135,19 +149,19 @@ function ludoRollDice() {
   $('ludoRollInfo').textContent = 'Rolled a ' + ludo.dice;
   var p = ludo.turn;
   var any = ludo.tokens[p].some(function(pr) { return ludoMovable(p, pr, ludo.dice); });
-  renderLudo();
+  renderLudoTokens(null);
   if (!any) {
     setMsg('No moves possible — turn passes to the next player.');
     ludo.rolled = false;
     ludo.turn = (ludo.turn + 1) % ludo.nPlayers;
     setTurn(players[ludo.turn].name + "'s turn — roll the dice!");
-    renderLudo();
+    renderLudoTokens(null);
   } else {
     setTurn(players[p].name + ' rolled ' + ludo.dice + ' — tap a highlighted token!');
     setMsg('');
   }
 }
-// Both the dice itself and the Roll button roll — tapping the dice is now a first-class control.
+// Both the dice itself and the Roll button roll — tapping the dice is a first-class control.
 $('ludoRoll').onclick = ludoRollDice;
 $('ludoDice').onclick = ludoRollDice;
 $('ludoDice').addEventListener('keydown', function(e) {
