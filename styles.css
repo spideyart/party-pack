@@ -221,3 +221,9 @@ button, .game-card, .ttt-cell, .c4-cell, .edge, .ship-cell, .dice, .ludo-token {
 .picker-btn:active { transform: scale(0.9); }
 .picker-chip { font-size: 14px; font-weight: 600; color: #fff; background: rgba(255, 255, 255, 0.12); border: 1px solid var(--glass-border); border-radius: 999px; padding: 9px 13px; cursor: pointer; transition: transform 0.12s ease; }
 .picker-chip:active { transform: scale(0.94); }
+
+/* ---- Pawn sprites (replacing the numbered circles) ---- */
+.ludo-board .ludo-token.sprite { width: 95%; height: 95%; background-color: transparent; background-size: contain; background-repeat: no-repeat; background-position: center bottom; border: none; box-shadow: none; filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.45)); }
+.ludo-board .ludo-token.sprite::before { content: none; }
+.ludo-board .ludo-token.sprite.movable { outline: none; filter: drop-shadow(0 0 5px #ffd700) drop-shadow(0 2px 2px rgba(0, 0, 0, 0.45)); }
+.ludo-token .token-num { position: absolute; right: 0; bottom: 0; width: 13px; height: 13px; border-radius: 50%; background: rgba(0, 0, 0, 0.75); color: #fff; font-size: 9px; font-weight: 700; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255, 255, 255, 0.8); z-index: 2; }

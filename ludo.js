@@ -90,8 +90,8 @@ function buildLudoBoard() {
   for (var p = 0; p < ludo.nPlayers; p++) {
     ludo.tokenEls.push([]);
     for (var t = 0; t < 4; t++) {
-      var tok = el('div', 'ludo-token', String(t + 1));
-      tok.style.background = players[p].color;
+      var tok = el('div', 'ludo-token sprite pawn-' + ['red', 'green', 'yellow', 'blue'][p]);
+      tok.appendChild(el('span', 'token-num', String(t + 1)));
       ludo.tokenEls[p].push(tok);
     }
   }
